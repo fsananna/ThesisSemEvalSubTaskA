@@ -37,7 +37,7 @@ class IdiomDataset(Dataset):
         # Remove the square brackets from the first and last elements
         expected_order[0] = expected_order[0].lstrip('[')  # Remove '[' from the first element
         expected_order[-1] = expected_order[-1].rstrip(']')  # Remove ']' from the last element
-        expected_order = [lambda x: x.strip().replace("'","") for x in  expected_order ]
+        expected_order = [lambda x: x.replace("'","").strip() for x in  expected_order ]
         # Create mappings for image indexing
         image_to_idx = {img: i for i, img in enumerate(expected_order)}
         idx_to_image = {i: img for i, img in enumerate(expected_order)}
@@ -55,7 +55,7 @@ class IdiomDataset(Dataset):
         image_folder = self.dataset_dir + "/" +idiom
         images = []
         for img_name in shuffled_order:
-            img_name_clean = img_name.replace("'", "")  # Remove single quotes
+            img_name_clean = img_name  # Remove single quotes
             img_name_clean = img_name_clean.strip()
             img_path = os.path.join(image_folder, img_name_clean)
             img_path = image_folder + "/" + img_name_clean 
