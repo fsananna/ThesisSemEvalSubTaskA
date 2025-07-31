@@ -3,6 +3,10 @@ from transformers import BertTokenizer, BertModel
 from torch.nn.functional import cosine_similarity
 from evaluationMetrics import topKAcc, NDCG
 
+# Define the projection layer (ResNet 2048 -> BERT 768)
+projection = torch.nn.Linear(2048, 768)
+projection.eval()
+
 def get_text_vector(sentence, device="cpu"):
     tokenizer = BertTokenizer.from_pretrained("bert-base-uncased")
     model = BertModel.from_pretrained("bert-base-uncased").to(device)
@@ -14,8 +18,13 @@ def get_text_vector(sentence, device="cpu"):
 
 def rank_images(sentence, image_vectors, device="cpu"):
     text_vector = get_text_vector(sentence, device)
+    image_vectors = image_vectors.to(device)
+
+    # Project image vectors to 768-D to match BERT
+    projected_image_vectors = projection(image_vectors)
+
     similarities = []
-    for i, img_vector in enumerate(image_vectors):
+    for i, img_vector in enumerate(projected_image_vectors):
         sim = cosine_similarity(text_vector.unsqueeze(0), img_vector.unsqueeze(0)).item()
         similarities.append((i, sim))
     similarities.sort(key=lambda x: x[1], reverse=True)

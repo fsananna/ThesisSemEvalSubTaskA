@@ -25,9 +25,6 @@ class IdiomDataset(Dataset):
         modules = list(resnet.children())[:-1]  # Remove final FC layer
         self.resnet = torch.nn.Sequential(*modules).eval()
 
-        # Add Projection Layer (2048 -> 768)
-        self.projection = torch.nn.Linear(2048, 768).eval()
-
         # Image Transform
         self.transform = transform if transform else transforms.Compose([
             transforms.Resize((224, 224)),
@@ -68,8 +65,7 @@ class IdiomDataset(Dataset):
                 with torch.no_grad():
                     resnet_output = self.resnet(image)  # (1, 2048, 1, 1)
                     resnet_output = resnet_output.view(1, -1)  # (1, 2048)
-                    projected_vector = self.projection(resnet_output)  # (1, 768)
-                image_vectors.append(projected_vector.squeeze())  # (768,)
+                image_vectors.append(resnet_output.squeeze())  # (2048,)
                 valid_images.append(img_name)
             except Exception as e:
                 print(f"Error loading image: {img_path}, {e}")
@@ -89,7 +85,7 @@ class IdiomDataset(Dataset):
             "shuffled_order": valid_images,
             "actual_target": target[:len(valid_images)],
             "shuffled_target": shuffled_target,
-            "image_vectors": image_vectors,  # Shape: (n, 768)
+            "image_vectors": image_vectors,  # Shape: (n, 2048)
             "img_to_idx": image_to_idx,
             "idx_to_img": idx_to_image
         }
